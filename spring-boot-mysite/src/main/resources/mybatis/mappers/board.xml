@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="board">
+
+	<select id ="getList" parameterType="map" resultType="boardVo">
+		<![CDATA[
+			select		b.no,
+						b.title,
+						b.contents,
+						b.write_date,
+						b.hit,
+						b.g_no,
+						b.o_no,
+						b.depth,
+						u.name,
+						b.user_no
+			from 		board as b, 
+						user as u
+			where		b.user_no = u.no
+			order by	b.g_no desc, b.o_no asc
+			limit		#{startRow}, #{endRow}  
+		]]>
+	</select>
+	
+	<select id="getSearch" parameterType="map" resultType="boardVo">
+		<choose>
+			<when test='search == "title"'>
+				<![CDATA[
+					select		board.no,
+								title,
+								contents,
+								write_date,
+								hit,
+								g_no,
+								o_no,
+								depth,
+								name,
+								user_no
+					from		board, user
+					where		board.user_no = user.no
+					and			(title LIKE '%${krd }%')
+					order by	g_no desc, o_no asc
+					limit		#{startRow}, #{endRow} 	
+				]]>
+			</when> 
+			<when test='search == "contents"'>
+				<![CDATA[
+					select		board.no,
+								title,
+								contents,
+								write_date,
+								hit,
+								g_no,
+								o_no,
+								depth,
+								name,
+								user_no
+					from		board, user
+					where		board.user_no = user.no
+					and			(contents LIKE '%${krd }%')
+					order by	g_no desc, o_no asc
+					limit		#{startRow}, #{endRow} 	
+				]]>
+			</when>
+			<when test='search == "all"'>
+				<![CDATA[
+					select		board.no,
+								title,
+								contents,
+								write_date,
+								hit,
+								g_no,
+								o_no,
+								depth,
+								name,
+								user_no
+					from		board, user
+					where		board.user_no = user.no
+					and			(contents LIKE '%${krd }%')
+					and			(title LIKE '%${krd }%')
+					order by	g_no desc, o_no asc
+					limit		#{startRow}, #{endRow} 	
+				]]>
+			</when>
+		</choose>
+	</select>
+	
+	<select id="getSearchTotalCount" parameterType="map" resultType="integer">
+		<choose>
+			<when test='search == "title"'>
+				<![CDATA[
+					select		count(*)
+					from		board,
+								user
+					where		board.user_no = user.no
+					and			(contents LIKE '${kwd}')
+				]]>
+			</when>
+			<when test='search == "contents"'>			
+				<![CDATA[
+					select		count(*)
+					from		board, 
+								user
+					where		board.user_no = user.no
+					and			(title LIKE '%${kwd}%')
+				]]>
+			</when>
+			<when test='search == "all"'>
+				<![CDATA[
+					select		count(*)
+					from		board,
+								user
+					where		board.user_no = user.no
+					and 		(title LIKE '%${kwd}%')
+					and			(contents LIKE '${kwd}')
+				]]>
+			</when>	
+		</choose>	
+	</select> 
+	
+	<select id="getTotalCount" resultType="integer">
+		<![CDATA[
+			select		count(*)
+			from		board
+		]]>
+	</select>
+	<!-- 에러 -->
+	<select id="get" parameterType="long" resultType="boardVo">
+		<![CDATA[
+			select		title,
+						contents,
+						user_no,
+						g_no,
+						o_no,
+						depth
+			from		board
+			where		no = #{no}
+		]]>
+	</select>
+	
+	<insert id="insert" parameterType="boardVo">
+		<![CDATA[
+			insert
+			into		board
+			values		(null,
+						#{title},
+						#{contents},
+						now(),
+						0,
+						(
+							select if(count(*) = 0, 1, MAX(g_no)+1)
+							from board b
+						),
+						1,
+						0,
+						#{user_no})	
+		]]>
+	</insert> 
+	
+	<insert id="replyinsert" parameterType="boardVo">
+		<![CDATA[
+			insert
+			into		board
+			values		(null,
+						#{title},
+						#{contents},
+						now(),
+						0,
+						(
+							select	b.g_no
+							from	board b
+							where 	b.no = #{no}
+						),
+						(
+							select	b.o_no + 1
+							from	board b
+							where	b.no = #{no}
+						),
+						(
+							select	b.depth + 1
+							from	board b
+							where	b.no = #{no}
+						),
+						#{user_no})
+		]]>
+	</insert>
+	
+	<update id="update" parameterType="boardVo">
+		<![CDATA[
+			update		board
+			set			title = #{title},
+						contents = #{contents},
+						write_date = now()
+			where		user_no = #{user_no}
+			and			no = #{no}			
+		]]>
+	</update>
+	
+	<update id="replyupdate" parameterType="boardVo">
+		<![CDATA[
+			update		board
+			set			o_no = o_no + 1
+			where		g_no = #{g_no}
+			and			o_no > #{o_no}
+			and			write_date < ( select * from
+										(selct max(b.write_date)
+										from board b) tmp)
+		]]>
+	</update>
+	<!-- 에러 -->
+	<update id="hitupdate" parameterType="long">
+		<![CDATA[
+			update		board
+			set			hit = hit + 1
+			where		no = #{no}
+		]]>
+	</update>
+	
+	<delete id="delete" parameterType="boardVo">
+		<![CDATA[
+			delete	board
+			from	board
+			join	user
+			on		board.user_no = #{user_no}
+			where	board.no = #{no}
+			and 	user.password = #{password}
+		]]>
+	</delete>
+	
+</mapper>

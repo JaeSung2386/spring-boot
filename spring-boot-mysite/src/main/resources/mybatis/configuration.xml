@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	
+	<typeAliases>
+		<typeAlias alias="userVo" type="com.douzone.mysite.vo.UserVo" />
+		<typeAlias alias="guestbookVo" type="com.douzone.mysite.vo.GuestbookVo" />
+		<typeAlias alias="boardVo" type="com.douzone.mysite.vo.BoardVo" />
+		<typeAlias alias="commentVo" type="com.douzone.mysite.vo.CommentVo" />
+		<typeAlias alias="pageVo" type="com.douzone.mysite.vo.PageVo" />
+		<typeAlias alias="siteVo" type="com.douzone.mysite.vo.SiteVo" />
+		<typeAlias alias="galleryVo" type="com.douzone.mysite.vo.GalleryVo" />
+	</typeAliases>
+	
+	<!-- SQL문를 저장하는 파일 -->
+	<mappers>
+		<mapper resource="mybatis/mappers/user.xml"/>
+		<mapper resource="mybatis/mappers/board.xml"/>
+		<mapper resource="mybatis/mappers/site.xml"/>
+		<mapper resource="mybatis/mappers/guestbook.xml"/>
+		<mapper resource="mybatis/mappers/gallery.xml"/>
+	</mappers>
+	
+</configuration>
